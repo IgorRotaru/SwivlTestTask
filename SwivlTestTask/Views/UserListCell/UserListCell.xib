@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14313.18" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.14"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="UserListCell" rowHeight="72" id="KGk-i7-Jjw" customClass="UserListCell" customModule="SwivlTestTask" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="72"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="375" height="71.5"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="noAvatar" translatesAutoresizingMaskIntoConstraints="NO" id="kZn-FZ-cqT" customClass="CircleImageView" customModule="SwivlTestTask" customModuleProvider="target">
+                        <rect key="frame" x="16" y="11" width="50" height="50"/>
+                        <constraints>
+                            <constraint firstAttribute="width" secondItem="kZn-FZ-cqT" secondAttribute="height" multiplier="1:1" id="hOu-Yd-1JQ"/>
+                        </constraints>
+                    </imageView>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZOw-do-RCN">
+                        <rect key="frame" x="74" y="14.5" width="245" height="42.5"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="05k-Pq-VBI">
+                                <rect key="frame" x="0.0" y="0.0" width="245" height="20.5"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gdo-6R-p57">
+                                <rect key="frame" x="0.0" y="24.5" width="245" height="18"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                <color key="textColor" white="0.20121682290262824" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="05k-Pq-VBI" secondAttribute="trailing" id="L5h-AF-FzA"/>
+                            <constraint firstItem="05k-Pq-VBI" firstAttribute="top" secondItem="ZOw-do-RCN" secondAttribute="top" id="SrU-m4-wUX"/>
+                            <constraint firstItem="gdo-6R-p57" firstAttribute="top" secondItem="05k-Pq-VBI" secondAttribute="bottom" constant="4" id="Trf-MP-vfr"/>
+                            <constraint firstAttribute="bottom" secondItem="gdo-6R-p57" secondAttribute="bottom" id="sGu-Qy-C8C"/>
+                            <constraint firstItem="gdo-6R-p57" firstAttribute="leading" secondItem="ZOw-do-RCN" secondAttribute="leading" id="vUO-yI-bSa"/>
+                            <constraint firstAttribute="trailing" secondItem="gdo-6R-p57" secondAttribute="trailing" id="w7D-QJ-qzm"/>
+                            <constraint firstItem="05k-Pq-VBI" firstAttribute="leading" secondItem="ZOw-do-RCN" secondAttribute="leading" id="wmm-rN-o9y"/>
+                        </constraints>
+                    </view>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="checkmarkOff" translatesAutoresizingMaskIntoConstraints="NO" id="MS0-8G-f1y">
+                        <rect key="frame" x="331" y="22" width="28" height="28"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="28" id="YDX-8s-l8q"/>
+                            <constraint firstAttribute="width" secondItem="MS0-8G-f1y" secondAttribute="height" multiplier="1:1" id="z9z-qc-6Qw"/>
+                        </constraints>
+                    </imageView>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="kZn-FZ-cqT" firstAttribute="bottom" secondItem="H2p-sc-9uM" secondAttribute="bottomMargin" id="4fc-FL-OZS"/>
+                    <constraint firstItem="kZn-FZ-cqT" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" id="L72-bo-1Nw"/>
+                    <constraint firstItem="ZOw-do-RCN" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="bdm-uy-bfL"/>
+                    <constraint firstItem="MS0-8G-f1y" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="m6W-yf-oW9"/>
+                    <constraint firstItem="MS0-8G-f1y" firstAttribute="trailing" secondItem="H2p-sc-9uM" secondAttribute="trailingMargin" id="ogO-6o-XcP"/>
+                    <constraint firstItem="MS0-8G-f1y" firstAttribute="leading" secondItem="ZOw-do-RCN" secondAttribute="trailing" constant="12" id="sYZ-zN-ZMp"/>
+                    <constraint firstItem="kZn-FZ-cqT" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" id="wh8-Zu-J90"/>
+                    <constraint firstItem="ZOw-do-RCN" firstAttribute="leading" secondItem="kZn-FZ-cqT" secondAttribute="trailing" constant="8" id="zPL-8h-saP"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="ivAvatarPreview" destination="kZn-FZ-cqT" id="Dx2-xi-ika"/>
+                <outlet property="ivCheckmark" destination="MS0-8G-f1y" id="BMU-yq-6IZ"/>
+                <outlet property="lblProfileLink" destination="gdo-6R-p57" id="qPY-u6-L1Q"/>
+                <outlet property="lblUserName" destination="05k-Pq-VBI" id="Ap1-ZH-TFf"/>
+            </connections>
+            <point key="canvasLocation" x="181.59999999999999" y="166.41679160419793"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="checkmarkOff" width="28" height="28"/>
+        <image name="noAvatar" width="16.562347412109375" height="16.562347412109375"/>
+    </resources>
+</document>
