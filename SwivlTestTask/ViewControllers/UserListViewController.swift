@@ -10,13 +10,28 @@ import UIKit
 import ObjectMapper
 import INSPullToRefresh
 
-class UserListViewController: SelectedUsersViewController {
+final class UserListViewController: UIViewController {
 
-	@IBOutlet weak var tblUserList: UITableView!
+	// MARK: - IBOutlet
 	
+	@IBOutlet weak private var userTableView: UITableView!
+	
+	// MARK: - Properties
+	
+	var apiManager: ApiManager?
+	
+	lazy private var dateFormatter: DateFormatter = {
+		let dateFormatter = DateFormatter.init()
+		dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+		return dateFormatter
+	}()
+
 	private var lastSinceUserId: Int?
 	private var pageLoading: Bool = false
 	private var userList: [User] = []
+	private var selectedUsersViewController: SelectedUsersViewController!
+	
+	// MARK: - Lifecycle
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -29,15 +44,33 @@ class UserListViewController: SelectedUsersViewController {
 		loadUserListPage(sinceUserId: lastSinceUserId, completion: nil)
 	}
 
-	// MARK: - private
+	// MARK: - Navigation
+	
+	override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+		if let destinationVC = segue.destination as? SelectedUsersViewController,
+			segue.identifier == SegueIdentifier.fromUserListToSelectedUsers {
+			selectedUsersViewController = destinationVC
+			selectedUsersViewController.delegate = self
+		}
+		else if let composeMessageVC = segue.destination as? ComposeMessageViewController,
+			segue.identifier == SegueIdentifier.toComposeMessage {
+			composeMessageVC.delegate = self
+		}
+		else if let authorizationVC = segue.destination as? AuthorizationViewController,
+			segue.identifier == SegueIdentifier.toAuthorization {
+			authorizationVC.delegate = self
+		}
+	}
+	
+	// MARK: - Private Methods
 	
 	private func registerCells() {
 		let userListCellNib = UINib(nibName: UserListCell.identifier, bundle: nil)
-		tblUserList.register(userListCellNib, forCellReuseIdentifier: UserListCell.identifier)
+		userTableView.register(userListCellNib, forCellReuseIdentifier: UserListCell.identifier)
 	}
 	
 	private func addInfinityScroll() {
-		tblUserList.ins_addInfinityScroll(withHeight: 60) { [weak self] (scrollView) in
+		userTableView.ins_addInfinityScroll(withHeight: 60) { [weak self] (scrollView) in
 			guard let strongSelf = self else { return }
 			if strongSelf.pageLoading {
 				return
@@ -47,20 +80,20 @@ class UserListViewController: SelectedUsersViewController {
 				strongScrollView.ins_endInfinityScroll(withStoppingContentOffset: true)
 			})
 		}
-		let infinityIndicator = INSDefaultInfiniteIndicator.init(frame: CGRect.init(x: 0, y: 0, width: 24, height: 24))
-		tblUserList.ins_infiniteScrollBackgroundView.addSubview(infinityIndicator)
+		let infinityIndicator = INSDefaultInfiniteIndicator.init(frame: CGRect(x: 0, y: 0, width: 24, height: 24))
+		userTableView.ins_infiniteScrollBackgroundView.addSubview(infinityIndicator)
 		infinityIndicator.startAnimating()
 		
 	}
 	
 	private func loadUserListPage(sinceUserId: Int?, completion: (() -> Void)?) {
 		pageLoading = true
-		apiManager.loadUserList(since: sinceUserId) { [weak self] (success, response, statusCode) in
+		apiManager?.loadUserList(since: sinceUserId) { [weak self] (success, response, httpResponse) in
 			guard let strongSelf = self else { return }
 			strongSelf.pageLoading = false
 			if success,
 				let response = response as? [[String: Any]] {
-				strongSelf.tblUserList.beginUpdates()
+				strongSelf.userTableView.beginUpdates()
 				var newIndexPathList: [IndexPath] = []
 				let userMapper = Mapper<User>()
 				for userDic in response {
@@ -70,14 +103,14 @@ class UserListViewController: SelectedUsersViewController {
 						strongSelf.lastSinceUserId = user.id
 					}
 				}
-				strongSelf.tblUserList.insertRows(at: newIndexPathList, with: .bottom)
-				strongSelf.tblUserList.endUpdates()
+				strongSelf.userTableView.insertRows(at: newIndexPathList, with: .bottom)
+				strongSelf.userTableView.endUpdates()
 				if newIndexPathList.count == 0 {
-					strongSelf.tblUserList.ins_setInfinityScrollEnabled(false)
+					strongSelf.userTableView.ins_setInfinityScrollEnabled(false)
 				}
 			}
 			else {
-				strongSelf.handleErrorUserListResponse(success: success, response: response, statusCode: statusCode)
+				strongSelf.handleErrorUserListResponse(success: success, response: response, httpResponse: httpResponse)
 			}
 			if let completion = completion {
 				completion()
@@ -85,10 +118,16 @@ class UserListViewController: SelectedUsersViewController {
 		}
 	}
 	
-	private func handleErrorUserListResponse(success: Bool, response: Any, statusCode: Int?){
-		if let statusCode = statusCode {
-			switch statusCode {
+	private func handleErrorUserListResponse(success: Bool, response: Any, httpResponse: HTTPURLResponse?){
+		if let httpResponse = httpResponse {
+			switch httpResponse.statusCode {
 			case 403:
+				if let remainingRateLimit = httpResponse.allHeaderFields["X-RateLimit-Remaining"] as? String,
+					Int(remainingRateLimit) == 0,
+				let resetRateLimit = httpResponse.allHeaderFields["X-RateLimit-Reset"] as? String {
+					let resetDate = Date.init(timeIntervalSince1970: TimeInterval(resetRateLimit) ?? 0)
+					presentRateLimitAlert(message: "API rate limit exceeded for current ip, you can authorize with github to continue or wait to \(dateFormatter.string(from: resetDate))")
+				}
 				break
 				
 			case 401:
@@ -108,37 +147,66 @@ class UserListViewController: SelectedUsersViewController {
 	}
 	
 	private func resetToInitialState() {
-		clearSelectedList()
+		selectedUsersViewController.clearSelectedList()
 		
-		for (index, _) in userList.enumerated() {
-			if userList[index].isSelected {
-				tableView(tblUserList, didSelectRowAt: IndexPath.init(row: index, section: 0))
+		for (index, user) in userList.enumerated() {
+			if user.isSelected {
+				tableView(userTableView, didSelectRowAt: IndexPath.init(row: index, section: 0))
 			}
 		}
 	}
 	
-	// MARK: - overrided parent methods
+	private func presentRateLimitAlert(message: String) {
+		let rateLimitAlert = UIAlertController.init(title: "", message: message, preferredStyle: .alert)
+		
+		let okAction = UIAlertAction.init(title: "OK", style: .default) { [weak self](action) in
+			guard let strongSelf = self else{
+				return
+			}
+			strongSelf.dismiss(animated: true, completion: nil)
+			strongSelf.showGithubAuthorization()
+		}
+		rateLimitAlert.addAction(okAction)
+		
+		let cancelAction = UIAlertAction.init(title: "Cancel", style: .cancel) { [weak self](action) in
+			guard let strongSelf = self else{
+				return
+			}
+			strongSelf.dismiss(animated: true, completion: nil)
+		}
+		rateLimitAlert.addAction(cancelAction)
+		
+		present(rateLimitAlert, animated: true, completion: nil)
+	}
 	
-	override func selectedUserListChanged(old: [User], new: [User]) {
-		super.selectedUserListChanged(old: old, new: new)
+	private func presentAlertMessage(_ message: String) {
+		let authorizationFailedAlert = UIAlertController.init(title: "", message: message, preferredStyle: .alert)
+
+		let cancelAction = UIAlertAction.init(title: "OK", style: .cancel) { [weak self](action) in
+			guard let strongSelf = self else{
+				return
+			}
+			strongSelf.dismiss(animated: true, completion: nil)
+		}
+		authorizationFailedAlert.addAction(cancelAction)
+		
+		present(authorizationFailedAlert, animated: true, completion: nil)
+	}
+	
+	private func showGithubAuthorization() {
+		performSegue(withIdentifier: SegueIdentifier.toAuthorization, sender: nil)
+	}
+	
+	private func updateNextButton() {
 		if let nextBarBtn = navigationItem.rightBarButtonItem {
-			nextBarBtn.isEnabled = new.count > 0
+			nextBarBtn.isEnabled = selectedUsersViewController.selectedUserList.count > 0
 		}
 	}
 	
-	override func didTouchClose(forUserId id: Int) {
-		if let userIndex = userList.index(where: { $0.id == id }) {
-			tableView(tblUserList, didSelectRowAt: IndexPath.init(row: userIndex, section: 0))
-		}
-	}
+	// MARK: - Actions
 	
-	// MARK: - actions
-	
-	@objc func didTouchNext(_ sender: UIBarButtonItem) {
-		let composeMessageVC = storyboard?.instantiateViewController(withIdentifier: "ComposeMessageViewController") as! ComposeMessageViewController
-		composeMessageVC.selectedUserList = selectedUserList
-		composeMessageVC.delegate = self
-		navigationController?.pushViewController(composeMessageVC, animated: true)
+	@objc private func didTouchNext(_ sender: UIBarButtonItem) {
+		performSegue(withIdentifier: SegueIdentifier.toComposeMessage, sender: nil)
 	}
 	
 }
@@ -176,7 +244,8 @@ extension UserListViewController: UITableViewDelegate {
 		}
 		
 		let user = userList[indexPath.row]
-		user.isSelected ? selectUser(user) : removeUser(user)
+		user.isSelected ? selectedUsersViewController.selectUser(user) : selectedUsersViewController.removeUser(user)
+		updateNextButton()
 	}
 
 }
@@ -193,5 +262,41 @@ extension UserListViewController: ComposeMessageViewControllerDelegate {
 	func didTouchSendMessage(){
 		navigationController?.popViewController(animated: true)
 		resetToInitialState()
+	}
+	
+	func selectedUserList() -> [User] {
+		return selectedUsersViewController.selectedUserList
+	}
+}
+
+extension UserListViewController: AuthorizationViewControllerDelegate {
+	
+	// MARK: - AuthorizationViewControllerDelegate
+	
+	func didReciveAuthorizationParams(_ params: [String: Any]) {
+		navigationController?.popViewController(animated: true)
+		apiManager?.authorizeUser(withParams: params) { [weak self] (success, response, httpResponse) in
+			guard let strongSelf = self else { return }
+			if success,
+				let response = response as? [String: Any],
+				let accessToken = response["access_token"] as? String {
+				strongSelf.apiManager?.setupAccessToken(accessToken)
+				strongSelf.loadUserListPage(sinceUserId: strongSelf.lastSinceUserId, completion: nil)
+			}
+			else {
+				strongSelf.presentAlertMessage("Authorization failed")
+			}
+		}
+	}
+}
+
+extension UserListViewController: SelectedUserCellDelegate {
+
+	// MARK: - SelectedUserCellDelegate
+
+	 func didTouchClose(forUserId id: Int) {
+		if let userIndex = userList.index(where: { $0.id == id }) {
+			tableView(userTableView, didSelectRowAt: IndexPath.init(row: userIndex, section: 0))
+		}
 	}
 }

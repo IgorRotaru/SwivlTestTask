@@ -9,13 +9,21 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate {
 
+	// MARK: - Properties
+	
 	var window: UIWindow?
+	private let apiManager = ApiManager()
 
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-		// Override point for customization after application launch.
+		
+		if let navigationController = window?.rootViewController as? UINavigationController,
+			let userListVC = navigationController.topViewController as? UserListViewController {
+			userListVC.apiManager = apiManager
+		}
+		
 		return true
 	}
 

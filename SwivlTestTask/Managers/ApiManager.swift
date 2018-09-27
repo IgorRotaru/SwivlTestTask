@@ -8,61 +8,87 @@
 
 import UIKit
 
-typealias ApiCallback = (Bool, Any, Int?) -> Void
-typealias SuccessCallback = (HTTPURLResponse?, Any) -> Void
-typealias FailureCallback = (HTTPURLResponse?, Any, Error?) -> Void
-
-class ApiManager {
+final class ApiManager {
+	
+	typealias ApiCallback = (Bool, Any, HTTPURLResponse?) -> Void
+	typealias SuccessCallback = (HTTPURLResponse?, Any) -> Void
+	typealias FailureCallback = (HTTPURLResponse?, Any, Error?) -> Void
+	
+	// MARK: - Properties
 	
 	private var session: URLSession = URLSession.shared
 	
-	// MARK: - api calls
+	// MARK: - Public Methods
+	
+	func setupAccessToken(_ token: String) {
+		let configuration = URLSession.shared.configuration
+		let authHeaders = [
+			"Authorization": "token \(token)"
+		]
+		configuration.httpAdditionalHeaders = authHeaders
+		session = URLSession.init(configuration: configuration)
+	}
+	
+	// MARK: - API Calls
 	
 	func loadUserList(since: Int?, callback: @escaping ApiCallback) {
-		let sUrl:String = "https://api.github.com/users"
-		guard let url: URL = URL(string:sUrl) else {
+		let sUrl = "https://api.github.com/users"
+		guard let url = URL(string:sUrl) else {
 			callback(false, [:], nil)
 			return
 		}
 		
-		var params: [String: Any] = ["per_page": kUserPerPage]
+		var params: [String: Any] = ["per_page": Constants.userPerPage]
 		if let since = since {
 			params["since"] = since
 		}
-		NSLog("\(params)")
-		GET(url: url, params: params, success: { (httpResponse, response) in
+		
+		runTask(withUrl: url, httpMethod: "GET", params: params, success: { (httpResponse, response) in
 			DispatchQueue.main.async {
-				callback(true, response, httpResponse?.statusCode)
+				callback(true, response, httpResponse)
 			}
 		}) { (httpResponse, response, error) in
 			DispatchQueue.main.async {
-				callback(false, response, httpResponse?.statusCode)
+				callback(false, response, httpResponse)
 			}
 		}
 	}
 	
-	// MARK: private
-	
-	
-	private func GET(url: URL, params: [String: Any]?, success: @escaping(SuccessCallback), failure: @escaping(FailureCallback)) -> Void {
+	func authorizeUser(withParams params: [String: Any], callback: @escaping ApiCallback) {
+		let sUrl = "https://github.com/login/oauth/access_token"
+		guard let url = URL(string:sUrl) else {
+			callback(false, [:], nil)
+			return
+		}
+		let headers = ["cache-control": "no-cache", "content-type": "application/json", "Accept": "application/json"]
 		
-		let headers = ["cache-control": "no-cache", "content-type": "application/json"]
-		let urlComp = NSURLComponents(string: url.absoluteString)!
-		var items = [URLQueryItem]()
-		if let params = params {
-			for (key, value) in params {
-				items.append(URLQueryItem(name: key, value: "\(value)"))
+		runTask(withUrl: url, httpMethod: "POST", params: params, headers: headers, success: { (httpResponse, response) in
+			DispatchQueue.main.async {
+				callback(true, response, httpResponse)
 			}
-			items = items.filter{ !$0.name.isEmpty }
-			
+		}) { (httpResponse, response, error) in
+			DispatchQueue.main.async {
+				callback(false, response, httpResponse)
+			}
+		}
+	}
+	
+	// MARK: - Private Methods
+	
+	private func runTask(withUrl url: URL, httpMethod: String, params: [String: Any]?, headers: [String: String]? = nil, success: @escaping(SuccessCallback), failure: @escaping(FailureCallback)) -> Void {
+		
+		let urlComp = NSURLComponents(string: url.absoluteString)!
+		
+		if let params = params {
+			let items = params.toQueryItems()
 			if !items.isEmpty {
 				urlComp.queryItems = items
 			}
 		}
 		
 		var request: URLRequest = URLRequest(url: urlComp.url!)
-		request.httpMethod = "GET"
-		request.allHTTPHeaderFields = headers
+		request.httpMethod = httpMethod
+		request.allHTTPHeaderFields = headers != nil ? headers : Constants.defaultHeaders
 		
 		_ = runTask(withRequest: request, success: success, failure: failure)
 	}
@@ -95,7 +121,6 @@ class ApiManager {
 				failure(httpResponse, result, error)
 				return
 			}
-//			NSLog("\(request.httpMethod ?? "httpMethod"): \(result)")
 			
 			if(httpResponse.statusCode >= 200 && httpResponse.statusCode <= 204) {
 				success(httpResponse, result)
@@ -107,6 +132,5 @@ class ApiManager {
 		task.resume()
 		return task
 	}
-	
 	
 }

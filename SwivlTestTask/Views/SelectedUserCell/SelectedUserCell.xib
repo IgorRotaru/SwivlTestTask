@@ -58,9 +58,9 @@
             <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
             <size key="customSize" width="90" height="108"/>
             <connections>
-                <outlet property="btnRemove" destination="mbQ-bu-fhi" id="xGZ-zj-nJj"/>
-                <outlet property="ivAvatarPreview" destination="Gc1-yp-0yc" id="lPy-9R-QUv"/>
-                <outlet property="lblUserName" destination="CsR-C2-lLo" id="q9B-1G-s98"/>
+                <outlet property="avatarPreviewImageView" destination="Gc1-yp-0yc" id="lPy-9R-QUv"/>
+                <outlet property="removeButton" destination="mbQ-bu-fhi" id="xGZ-zj-nJj"/>
+                <outlet property="userNameLabel" destination="CsR-C2-lLo" id="q9B-1G-s98"/>
             </connections>
             <point key="canvasLocation" x="169.59999999999999" y="163.71814092953525"/>
         </collectionViewCell>

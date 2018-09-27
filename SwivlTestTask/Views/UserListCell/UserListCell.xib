@@ -73,10 +73,10 @@
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
-                <outlet property="ivAvatarPreview" destination="kZn-FZ-cqT" id="Dx2-xi-ika"/>
-                <outlet property="ivCheckmark" destination="MS0-8G-f1y" id="BMU-yq-6IZ"/>
-                <outlet property="lblProfileLink" destination="gdo-6R-p57" id="qPY-u6-L1Q"/>
-                <outlet property="lblUserName" destination="05k-Pq-VBI" id="Ap1-ZH-TFf"/>
+                <outlet property="avatarPreviewImageView" destination="kZn-FZ-cqT" id="Dx2-xi-ika"/>
+                <outlet property="checkmarkImageView" destination="MS0-8G-f1y" id="BMU-yq-6IZ"/>
+                <outlet property="profileLinkLabel" destination="gdo-6R-p57" id="qPY-u6-L1Q"/>
+                <outlet property="userNameLabel" destination="05k-Pq-VBI" id="Ap1-ZH-TFf"/>
             </connections>
             <point key="canvasLocation" x="181.59999999999999" y="166.41679160419793"/>
         </tableViewCell>

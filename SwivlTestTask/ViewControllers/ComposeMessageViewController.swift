@@ -8,19 +8,27 @@
 
 import UIKit
 
-@objc protocol ComposeMessageViewControllerDelegate: class {
-	@objc optional func didRemoveUser(withId id: Int)
-	@objc optional func didTouchSendMessage()
+protocol ComposeMessageViewControllerDelegate: class {
+	func didRemoveUser(withId id: Int)
+	func didTouchSendMessage()
+	func selectedUserList() -> [User]
 }
 
-class ComposeMessageViewController: SelectedUsersViewController {
+final class ComposeMessageViewController: UIViewController {
 	
-	@IBOutlet weak var tvMessage: UITextView!
-	@IBOutlet weak var btnSend: UIButton!
-	@IBOutlet weak var scrollView: UIScrollView!
+	// MARK: - IBOutlet
+	
+	@IBOutlet weak private var messageTextView: UITextView!
+	@IBOutlet weak private var sendButton: UIButton!
+	@IBOutlet weak private var scrollView: UIScrollView!
+	
+	// MARK: - Properties
 	
 	weak var delegate: ComposeMessageViewControllerDelegate?
+	private var selectedUsersViewController: SelectedUsersViewController!
 
+	// MARK: - Lifecycle
+	
     override func viewDidLoad() {
         super.viewDidLoad()
 		
@@ -32,7 +40,20 @@ class ComposeMessageViewController: SelectedUsersViewController {
 		NotificationCenter.default.removeObserver(self)
 	}
 	
-	// MARK: - private
+	// MARK: - Navigation
+	
+	override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+		if let destinationVC = segue.destination as? SelectedUsersViewController,
+			segue.identifier == SegueIdentifier.fromComposeMessageToSelectedUsers {
+			selectedUsersViewController = destinationVC
+			selectedUsersViewController.delegate = self
+			if let delegate = delegate {
+				selectedUsersViewController.setSelectedUserList(delegate.selectedUserList())
+			}
+		}
+	}
+	
+	// MARK: - Private Methods
 	
 	private func addKeyboardNotifications() {
 		NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -40,41 +61,27 @@ class ComposeMessageViewController: SelectedUsersViewController {
 	}
 	
 	private func updateBtnSendState() {
-		btnSend.isEnabled = selectedUserList.count > 0 && tvMessage.text.count > 0
-	}
+		let messageCond = messageTextView.text.trimmingCharacters(in: .whitespacesAndNewlines).count > 0
+		let usersCond = selectedUsersViewController.selectedUserList.count > 0
 
-	// MARK: - overrided parent methods
-	
-	override func selectedUserListChanged(old: [User], new: [User]) {
-		super.selectedUserListChanged(old: old, new: new)
-		updateBtnSendState()
+		sendButton.isEnabled = usersCond && messageCond
 	}
 	
-	override func didTouchClose(forUserId id: Int) {
-		super.didTouchClose(forUserId: id)
-		if let didRemoveUser = delegate?.didRemoveUser(withId:) {
-			didRemoveUser(id)
+	// MARK: - IBActions
+	
+	@IBAction private func didTouchSend(_ sender: UIButton) {
+		delegate?.didTouchSendMessage()
+	}
+	
+	@IBAction private func didTapView(_ sender: Any) {
+		if messageTextView.isFirstResponder {
+			messageTextView.resignFirstResponder()
 		}
 	}
-	
-	// MARK: - actions
-	
-	@IBAction func didTouchSend(_ sender: UIButton) {
-		if let didTouchSendMessage = delegate?.didTouchSendMessage {
-			didTouchSendMessage()
-		}
-	}
-	
-	@IBAction func didTapView(_ sender: Any) {
-		if tvMessage.isFirstResponder {
-			tvMessage.resignFirstResponder()
-		}
-	}
-	
 	
 	// MARK: - notifications
 	
-	@objc func keyboardWillShow(notification: NSNotification) {
+	@objc private func keyboardWillShow(notification: NSNotification) {
 		var userInfo = notification.userInfo!
 		var keyboardFrame = (userInfo[UIResponder.keyboardFrameBeginUserInfoKey] as! NSValue).cgRectValue
 		var endKeyboardFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
@@ -86,7 +93,7 @@ class ComposeMessageViewController: SelectedUsersViewController {
 		scrollView.contentInset = contentInset
 	}
 	
-	@objc func keyboardWillHide(notification: NSNotification) {
+	@objc private func keyboardWillHide(notification: NSNotification) {
 		var contentInset = scrollView.contentInset
 		contentInset.bottom = 0
 		scrollView.contentInset = contentInset
@@ -101,4 +108,17 @@ extension ComposeMessageViewController: UITextViewDelegate {
 		updateBtnSendState()
 	}
 	
+}
+
+extension ComposeMessageViewController: SelectedUserCellDelegate {
+	
+	// MARK: - SelectedUserCellDelegate
+	
+	func didTouchClose(forUserId id: Int) {
+		if let userIndex = selectedUsersViewController.selectedUserList.index(where: { $0.id == id }) {
+			selectedUsersViewController.removeUser(selectedUsersViewController.selectedUserList[userIndex])
+		}
+		delegate?.didRemoveUser(withId: id)
+		updateBtnSendState()
+	}
 }

@@ -8,19 +8,28 @@
 
 import UIKit
 
-class CircleImageView: UIImageView {
-
-	override func layoutSubviews() {
-		super.layoutSubviews()
-		layer.masksToBounds = true
-		layer.cornerRadius = frame.size.height/2.0
-	}
+final class CircleImageView: UIImageView {
+	
+	// MARK: - Overridden Properties
 	
 	override var bounds: CGRect {
 		didSet {
-			layer.masksToBounds = true
-			layer.cornerRadius = bounds.size.height/2.0
+			configureView()
 		}
+	}
+
+	// MARK: - Overridden Methods
+	
+	override func layoutSubviews() {
+		super.layoutSubviews()
+		configureView()
+	}
+	
+	// MARK: - Private Methods
+	
+	private func configureView() {
+		layer.cornerRadius = frame.size.height / 2.0
+		layer.masksToBounds = true
 	}
 
 }

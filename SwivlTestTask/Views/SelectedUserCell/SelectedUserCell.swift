@@ -9,42 +9,37 @@
 import UIKit
 import SDWebImage
 
-@objc protocol SelectedUserCellDelegate: class {
-	@objc optional func didTouchClose(forUserId id: Int)
+protocol SelectedUserCellDelegate: class {
+	 func didTouchClose(forUserId id: Int)
 }
 
-class SelectedUserCell: UICollectionViewCell {
+final class SelectedUserCell: UICollectionViewCell {
 
-	@IBOutlet weak var btnRemove: UIButton!
-	@IBOutlet weak var ivAvatarPreview: CircleImageView!
-	@IBOutlet weak var lblUserName: UILabel!
+	// MARK: - IBOutlet
+	
+	@IBOutlet weak var removeButton: UIButton!
+	@IBOutlet weak var avatarPreviewImageView: CircleImageView!
+	@IBOutlet weak var userNameLabel: UILabel!
 	
 	weak var delegate: SelectedUserCellDelegate?
-	
-	override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
-    }
 	
 	// MARK: - public
 	
 	func configureCell(withUser user: User) {
 		if let avatarPreviewLink = user.avatarPreview {
-			ivAvatarPreview.sd_setImage(with: URL(string: avatarPreviewLink), placeholderImage: UIImage(named: "noAvatar"))
+			avatarPreviewImageView.sd_setImage(with: URL(string: avatarPreviewLink), placeholderImage: UIImage(named: "noAvatar"))
 		}
 		else {
-			ivAvatarPreview.image = UIImage(named: "noAvatar")
+			avatarPreviewImageView.image = UIImage(named: "noAvatar")
 		}
-		lblUserName.text = user.userName
-		btnRemove.tag = user.id ?? 0
+		userNameLabel.text = user.userName
+		removeButton.tag = user.id ?? 0
 	}
 
-	// MARK: - actions
+	// MARK: - IBActions
 	
-	@IBAction func didTouchRevomeUser(_ sender: UIButton) {
-		if let didTouchClose = delegate?.didTouchClose(forUserId:) {
-			didTouchClose(sender.tag)
-		}
+	@IBAction private func didTouchRevomeUser(_ sender: UIButton) {
+		delegate?.didTouchClose(forUserId: sender.tag)
 	}
 	
 }

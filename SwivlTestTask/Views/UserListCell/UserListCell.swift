@@ -9,42 +9,40 @@
 import UIKit
 import SDWebImage
 
-class UserListCell: UITableViewCell {
+final class UserListCell: UITableViewCell {
 
-	@IBOutlet weak var ivAvatarPreview: CircleImageView!
-	@IBOutlet weak var lblUserName: UILabel!
-	@IBOutlet weak var lblProfileLink: UILabel!
-	@IBOutlet weak var ivCheckmark: UIImageView!
+	// MARK: - IBOutlet
+	
+	@IBOutlet weak var avatarPreviewImageView: CircleImageView!
+	@IBOutlet weak var userNameLabel: UILabel!
+	@IBOutlet weak var profileLinkLabel: UILabel!
+	@IBOutlet weak var checkmarkImageView: UIImageView!
+	
+	// MARK: - Lifecycle
 	
 	override func awakeFromNib() {
         super.awakeFromNib()
 		
 		selectionStyle = .none
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
 	
-	// MARK: - public
+	// MARK: - Public Methods
 	
 	func configureCell(withUser user: User) {
 		if let avatarPreviewLink = user.avatarPreview {
-			ivAvatarPreview.sd_setImage(with: URL(string: avatarPreviewLink), placeholderImage: UIImage(named: "noAvatar"))
+			avatarPreviewImageView.sd_setImage(with: URL(string: avatarPreviewLink), placeholderImage: UIImage(named: "noAvatar"))
 		}
 		else {
-			ivAvatarPreview.image = UIImage(named: "noAvatar")
+			avatarPreviewImageView.image = UIImage(named: "noAvatar")
 		}
-		lblUserName.text = user.userName
-		lblProfileLink.text = user.profileLink
-		ivCheckmark.image = user.isSelected ? UIImage.init(named: "checkmarkOn") : UIImage.init(named: "checkmarkOff")
+		userNameLabel.text = user.userName
+		profileLinkLabel.text = user.profileLink
+		checkmarkImageView.image = user.isSelected ? UIImage.init(named: "checkmarkOn") : UIImage.init(named: "checkmarkOff")
 	}
 	
 	func updateCheckmarkIcon(isSelected: Bool) {
-		UIView.transition(with: ivCheckmark, duration: kAnimationDuration, options: .transitionCrossDissolve, animations: {
-			self.ivCheckmark.image = isSelected ? UIImage.init(named: "checkmarkOn") : UIImage.init(named: "checkmarkOff")
+		UIView.transition(with: checkmarkImageView, duration: Constants.animationDuration, options: .transitionCrossDissolve, animations: {
+			self.checkmarkImageView.image = isSelected ? UIImage.init(named: "checkmarkOn") : UIImage.init(named: "checkmarkOff")
 		}) { (finished) in
 			
 		}

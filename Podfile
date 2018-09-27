@@ -10,6 +10,5 @@ target 'SwivlTestTask' do
 	pod 'INSPullToRefresh'
 	pod 'SDWebImage', '~> 4.0'
 	pod 'ObjectMapper', '~> 3.3'
-	pod 'NVActivityIndicatorView'
-	#pod 'SwiftyJSON', '~> 4.0'
+
 end
