@@ -14,7 +14,7 @@ struct User: Mappable {
 	var userName: String?
 	var avatarPreview: String?
 	var profileLink: String?
-	var isSelected: Bool = false
+	var isSelected = false
 	
 	init?(map: Map) {
 		
